@@ -31,18 +31,21 @@ module.exports = {
     },
     getCities: (req, res) => {
         sequelize.query(`
-        SELECT ci.city_id, ci.name, ci.rating, co.country_id, co.name 
+        SELECT ci.city_id, ci.name AS city, ci.rating, co.country_id, co.name AS country 
         FROM cities ci
-        JOIN countries co ON ci.country_id = co.country_id
-        ORDER BY ci.rating ASC;
+        JOIN countries co 
+        ON ci.country_id = co.country_id
+        ORDER BY ci.rating DESC;
         `)
         .then(dbRes => res.status(200).send(dbRes[0]))
         .catch(err => console.log(err))
     },
     deleteCity: (req, res) => {
+        let {id} = req.params
+
         sequelize.query(`
-        DROP TABLE cities
-        WHERE ${req.params.id} = ${req.body.countryId};
+        DELETE FROM cities
+        WHERE city_id = ${id};
         `)
         .then(dbRes => res.status(200).send(dbRes[0]))
         .catch(err => console.log(err))
@@ -60,13 +63,11 @@ module.exports = {
 
             CREATE TABLE cities (
                 city_id SERIAL PRIMARY KEY,
-                country_id INT NOT NULL REFERENCES countries(country_id)
                 name VARCHAR(40),
                 rating NUMERIC,
+                country_id INT NOT NULL REFERENCES countries(country_id)
             );
 
-            INSERT INTO cities (name, rating, country_id)
-            VALUES ('salt lake', 4, 3)
 
             insert into countries (name)
             values ('Afghanistan'),
@@ -264,6 +265,10 @@ module.exports = {
             ('Yemen'),
             ('Zambia'),
             ('Zimbabwe');
+
+            INSERT INTO cities (name, rating, country_id)
+            VALUES ('saltlake', 4 ,9), 
+            ('prove', 2, 40);
         `).then(() => {
             console.log('DB seeded!')
             res.sendStatus(200)
